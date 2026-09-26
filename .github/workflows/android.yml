@@ -18,19 +18,29 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: 8.2
 
     - name: Unzip project code
-      run: unzip wcsspoof-lsposed-module-3.zip -d ./extracted_project && mv ./extracted_project/*/* . || mv ./extracted_project/* . || true
-
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+      run: |
+        unzip -q wcsspoof-lsposed-module-3.zip -d extracted_project
+        if [ -d "extracted_project/wcsspoof-lsposed-module" ]; then
+          mv extracted_project/wcsspoof-lsposed-module/* .
+        elif [ -d "extracted_project/wcsspoof-lsposed-module-3" ]; then
+          mv extracted_project/wcsspoof-lsposed-module-3/* .
+        else
+          mv extracted_project/*/* . || mv extracted_project/* . || true
+        fi
 
     - name: Build Release APK
-      run: ./gradlew assembleRelease
+      run: gradle assembleRelease
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: lsposed-module-apk
-        path: app/build/outputs/apk/release/app-release.apk
+        path: |
+          **/build/outputs/apk/release/*.apk
